@@ -1,0 +1,21 @@
+# Um job, duas tarefas: a bronze chega e é catalogada (etapa 2) → DQX marca e grava a silver (etapa 3).
+resources:
+  jobs:
+    dq_simples:
+      name: "DQX Simples - Bronze → Silver com regras por tag"
+      tasks:
+        - task_key: bronze_e_tags
+          notebook_task:
+            notebook_path: ../notebooks/01_bronze_e_tags.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+
+        - task_key: bronze_para_silver
+          depends_on: [{task_key: bronze_e_tags}]
+          notebook_task:
+            notebook_path: ../notebooks/02_bronze_para_silver.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              arquivo_regras: ${workspace.file_path}/regras_dq.yml

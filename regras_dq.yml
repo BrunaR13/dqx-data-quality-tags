@@ -1,0 +1,81 @@
+# ETAPA 1 · AS REGRAS
+#
+# As regras não apontam para nenhuma tabela. Cada uma fica ligada a uma TAG do Unity Catalog:
+# toda coluna, de qualquer tabela, que tiver aquela tag passa a ser validada pela regra.
+#
+#   "dq_tipo = cpf"  →  toda coluna com a tag dq_tipo = cpf é validada como CPF
+#
+# {coluna} é trocado pelo nome da coluna tagueada.
+# criticality: error | warn. Nenhuma das duas bloqueia o dado; só define a prioridade do aviso.
+
+times:
+  Emissão:
+    contato: emissao-dados@exemplo.com.br
+  Sinistros:
+    contato: sinistros-dados@exemplo.com.br
+
+regras:
+
+  "dq_obrigatorio = sim":
+    - name: obrigatorio
+      criticality: error
+      check:
+        function: is_not_null_and_not_empty
+        arguments: {column: "{coluna}"}
+
+  "dq_tipo = cpf":
+    - name: cpf_formato
+      criticality: error
+      filter: "{coluna} IS NOT NULL"
+      check:
+        function: regex_match
+        arguments: {column: "{coluna}", regex: '^[0-9]{11}$'}
+
+  "dq_tipo = email":
+    - name: email_valido
+      criticality: warn
+      filter: "{coluna} IS NOT NULL"
+      check:
+        function: is_valid_email
+        arguments: {column: "{coluna}"}
+
+  "dq_tipo = valor_monetario":
+    - name: valor_positivo
+      criticality: error
+      check:
+        function: sql_expression
+        arguments: {expression: "{coluna} > 0", msg: "{coluna} deve ser maior que zero"}
+
+  "dq_tipo = data_passada":
+    - name: data_nao_futura
+      criticality: error
+      check:
+        function: is_not_in_future
+        arguments: {column: "{coluna}"}
+
+  "dq_dominio = uf":
+    - name: uf_valida
+      criticality: warn
+      check:
+        function: is_in_list
+        arguments:
+          column: "{coluna}"
+          allowed: [AC, AL, AP, AM, BA, CE, DF, ES, GO, MA, MT, MS, MG, PA, PB, PR, PE, PI, RJ, RN, RS, RO, RR, SC, SP, SE, TO]
+
+  "dq_dominio = produto":
+    - name: produto_valido
+      criticality: error
+      check:
+        function: is_in_list
+        arguments:
+          column: "{coluna}"
+          allowed: [VIDA_INDIVIDUAL, VIDA_GRUPO, PREVIDENCIA_PGBL, PREVIDENCIA_VGBL]
+
+  "dq_dominio = tipo_sinistro":
+    - name: tipo_sinistro_valido
+      criticality: error
+      check:
+        function: is_in_list
+        arguments:
+          column: "{coluna}"
+          allowed: [MORTE, INVALIDEZ, DOENCA_GRAVE, FUNERAL]

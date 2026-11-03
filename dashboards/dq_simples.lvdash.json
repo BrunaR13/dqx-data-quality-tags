@@ -1,0 +1,788 @@
+{
+  "datasets": [
+    {
+      "name": "ds_resultados",
+      "displayName": "Problemas encontrados",
+      "queryLines": [
+        "SELECT time_responsavel, tabela, chave_registro, regra, coluna, criticidade, mensagem, executado_em ",
+        "FROM dq_resultados"
+      ]
+    },
+    {
+      "name": "ds_resumo",
+      "displayName": "Resumo por tabela",
+      "queryLines": [
+        "SELECT time_responsavel, tabela, linhas, linhas_com_erro, linhas_so_com_aviso, linhas_ok, executado_em ",
+        "FROM dq_resumo"
+      ],
+      "columns": [
+        {
+          "displayName": "% linhas sem erro",
+          "description": "linhas sem _errors / total de linhas",
+          "expression": "1 - SUM(`linhas_com_erro`) / SUM(`linhas`)"
+        }
+      ]
+    },
+    {
+      "name": "ds_regras",
+      "displayName": "Regras aplicadas (vindas das tags)",
+      "queryLines": [
+        "SELECT time_responsavel, tabela, coluna, tag, regra, criticidade FROM dq_regras_aplicadas"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "visao_geral",
+      "displayName": "Visão geral",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1",
+      "layout": [
+        {
+          "widget": {
+            "name": "titulo",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# Qualidade de dados por time\n",
+                "\n",
+                "Regras ligadas a **tags** do Unity Catalog → DQX marca a silver (**sem bloquear**) → ",
+                "cada time vê aqui e recebe alerta dos problemas dos seus dados."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "f_time",
+            "queries": [
+              {
+                "name": "f_time_ds_resultados",
+                "query": {
+                  "datasetName": "ds_resultados",
+                  "fields": [
+                    {
+                      "name": "time_responsavel",
+                      "expression": "`time_responsavel`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "f_time_ds_resumo",
+                "query": {
+                  "datasetName": "ds_resumo",
+                  "fields": [
+                    {
+                      "name": "time_responsavel",
+                      "expression": "`time_responsavel`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "f_time_ds_regras",
+                "query": {
+                  "datasetName": "ds_regras",
+                  "fields": [
+                    {
+                      "name": "time_responsavel",
+                      "expression": "`time_responsavel`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "time_responsavel",
+                    "displayName": "Time",
+                    "queryName": "f_time_ds_resultados"
+                  },
+                  {
+                    "fieldName": "time_responsavel",
+                    "displayName": "Time",
+                    "queryName": "f_time_ds_resumo"
+                  },
+                  {
+                    "fieldName": "time_responsavel",
+                    "displayName": "Time",
+                    "queryName": "f_time_ds_regras"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Time"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "f_tabela",
+            "queries": [
+              {
+                "name": "f_tabela_ds_resultados",
+                "query": {
+                  "datasetName": "ds_resultados",
+                  "fields": [
+                    {
+                      "name": "tabela",
+                      "expression": "`tabela`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "f_tabela_ds_resumo",
+                "query": {
+                  "datasetName": "ds_resumo",
+                  "fields": [
+                    {
+                      "name": "tabela",
+                      "expression": "`tabela`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "tabela",
+                    "displayName": "Tabela",
+                    "queryName": "f_tabela_ds_resultados"
+                  },
+                  {
+                    "fieldName": "tabela",
+                    "displayName": "Tabela",
+                    "queryName": "f_tabela_ds_resumo"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Tabela"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 2,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "k_linhas",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_resumo",
+                  "fields": [
+                    {
+                      "name": "sum(linhas)",
+                      "expression": "SUM(`linhas`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(linhas)",
+                  "displayName": "Linhas na silver"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Linhas na silver",
+                "description": "nenhuma linha foi descartada",
+                "showDescription": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "k_erro",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_resumo",
+                  "fields": [
+                    {
+                      "name": "sum(linhas_com_erro)",
+                      "expression": "SUM(`linhas_com_erro`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(linhas_com_erro)",
+                  "displayName": "Linhas com erro"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Linhas com erro",
+                "description": "marcadas em _errors",
+                "showDescription": true
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 4,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "k_aviso",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_resumo",
+                  "fields": [
+                    {
+                      "name": "sum(linhas_so_com_aviso)",
+                      "expression": "SUM(`linhas_so_com_aviso`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(linhas_so_com_aviso)",
+                  "displayName": "Linhas só com aviso"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Linhas só com aviso",
+                "description": "marcadas em _warnings",
+                "showDescription": true
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 4,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "k_pct",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_resumo",
+                  "fields": [
+                    {
+                      "name": "measure(% linhas sem erro)",
+                      "expression": "MEASURE(`% linhas sem erro`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(% linhas sem erro)",
+                  "displayName": "% linhas sem erro",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "% linhas sem erro",
+                "description": "linhas sem _errors / total",
+                "showDescription": true
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 4,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "b_time",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_resultados",
+                  "fields": [
+                    {
+                      "name": "time_responsavel",
+                      "expression": "`time_responsavel`"
+                    },
+                    {
+                      "name": "criticidade",
+                      "expression": "`criticidade`"
+                    },
+                    {
+                      "name": "count(chave_registro)",
+                      "expression": "COUNT(`chave_registro`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "time_responsavel",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Time"
+                },
+                "y": {
+                  "fieldName": "count(chave_registro)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Problemas"
+                },
+                "color": {
+                  "fieldName": "criticidade",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "error",
+                        "color": "#E15759"
+                      },
+                      {
+                        "value": "warn",
+                        "color": "#F2B134"
+                      }
+                    ]
+                  },
+                  "displayName": "Criticidade"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Problemas por time",
+                "description": "error = prioridade alta · warn = aviso",
+                "showDescription": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 5,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "b_regra",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_resultados",
+                  "fields": [
+                    {
+                      "name": "regra",
+                      "expression": "`regra`"
+                    },
+                    {
+                      "name": "time_responsavel",
+                      "expression": "`time_responsavel`"
+                    },
+                    {
+                      "name": "count(chave_registro)",
+                      "expression": "COUNT(`chave_registro`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count(chave_registro)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Problemas"
+                },
+                "y": {
+                  "fieldName": "regra",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Regra"
+                },
+                "color": {
+                  "fieldName": "time_responsavel",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Time"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Problemas por regra"
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 7,
+            "width": 7,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "sec_detalhe",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## O que corrigir"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 13,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "t_detalhe",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_resultados",
+                  "fields": [
+                    {
+                      "name": "time_responsavel",
+                      "expression": "`time_responsavel`"
+                    },
+                    {
+                      "name": "tabela",
+                      "expression": "`tabela`"
+                    },
+                    {
+                      "name": "chave_registro",
+                      "expression": "`chave_registro`"
+                    },
+                    {
+                      "name": "criticidade",
+                      "expression": "`criticidade`"
+                    },
+                    {
+                      "name": "regra",
+                      "expression": "`regra`"
+                    },
+                    {
+                      "name": "mensagem",
+                      "expression": "`mensagem`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "time_responsavel",
+                    "displayName": "Time"
+                  },
+                  {
+                    "fieldName": "tabela",
+                    "displayName": "Tabela"
+                  },
+                  {
+                    "fieldName": "chave_registro",
+                    "displayName": "Chave"
+                  },
+                  {
+                    "fieldName": "criticidade",
+                    "displayName": "Criticidade"
+                  },
+                  {
+                    "fieldName": "regra",
+                    "displayName": "Regra"
+                  },
+                  {
+                    "fieldName": "mensagem",
+                    "displayName": "Mensagem do DQX"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Registros com problema (enviar ao time de origem)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 14,
+            "width": 12,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "sec_regras",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Reuso das regras: uma tag, várias tabelas\n",
+                "Cada regra foi escrita **uma vez** no `regras_dq.yml` e vale em toda coluna que recebeu a tag."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 21,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "b_reuso",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_regras",
+                  "fields": [
+                    {
+                      "name": "regra",
+                      "expression": "`regra`"
+                    },
+                    {
+                      "name": "time_responsavel",
+                      "expression": "`time_responsavel`"
+                    },
+                    {
+                      "name": "count(coluna)",
+                      "expression": "COUNT(`coluna`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count(coluna)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Colunas"
+                },
+                "y": {
+                  "fieldName": "regra",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Regra"
+                },
+                "color": {
+                  "fieldName": "time_responsavel",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Time"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Em quantas colunas cada regra foi aplicada"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 23,
+            "width": 5,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "t_regras",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_regras",
+                  "fields": [
+                    {
+                      "name": "tag",
+                      "expression": "`tag`"
+                    },
+                    {
+                      "name": "regra",
+                      "expression": "`regra`"
+                    },
+                    {
+                      "name": "criticidade",
+                      "expression": "`criticidade`"
+                    },
+                    {
+                      "name": "time_responsavel",
+                      "expression": "`time_responsavel`"
+                    },
+                    {
+                      "name": "tabela",
+                      "expression": "`tabela`"
+                    },
+                    {
+                      "name": "coluna",
+                      "expression": "`coluna`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "tag",
+                    "displayName": "Tag"
+                  },
+                  {
+                    "fieldName": "regra",
+                    "displayName": "Regra"
+                  },
+                  {
+                    "fieldName": "criticidade",
+                    "displayName": "Criticidade"
+                  },
+                  {
+                    "fieldName": "time_responsavel",
+                    "displayName": "Time"
+                  },
+                  {
+                    "fieldName": "tabela",
+                    "displayName": "Tabela"
+                  },
+                  {
+                    "fieldName": "coluna",
+                    "displayName": "Coluna"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Tag → regra → coluna"
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 23,
+            "width": 7,
+            "height": 7
+          }
+        }
+      ]
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "LEFT",
+      "widgetCornerRadius": 8
+    }
+  }
+}

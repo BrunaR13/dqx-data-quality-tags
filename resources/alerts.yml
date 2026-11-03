@@ -1,0 +1,77 @@
+# ETAPA 5 · Alertas: um por time, mesma consulta sobre dq_resultados mudando só o filtro do time.
+# Agenda pausada: na demo, abrir o alerta e clicar em "Run now". Para Teams/ITSM, trocar
+# user_email por destination_id de um destino webhook.
+
+resources:
+  alerts:
+    alerta_time_emissao:
+      display_name: "DQX Simples - Problemas de qualidade - Time Emissão"
+      warehouse_id: ${var.warehouse_id}
+      query_text: |
+        SELECT tabela, regra, criticidade, count(*) AS registros_afetados,
+               concat_ws(', ', sort_array(collect_set(chave_registro))) AS chaves
+        FROM ${var.catalog}.${var.schema}.dq_resultados
+        WHERE time_responsavel = 'Emissão'
+        GROUP BY tabela, regra, criticidade
+        ORDER BY criticidade, registros_afetados DESC
+      custom_summary: "[DQX Simples] {{ALERT_STATUS}} - problemas nos dados do Time Emissão"
+      custom_description: |
+        Os dados enviados pelo Time Emissão têm problemas de qualidade.
+        Nada foi bloqueado: os registros estão na silver, marcados. Corrija na origem e reenvie.
+
+        {{QUERY_RESULT_TABLE}}
+
+        Dashboard: ${workspace.host}/dashboardsv3/${resources.dashboards.dashboard_dq_simples.id}/published
+      evaluation:
+        source:
+          name: registros_afetados
+          aggregation: SUM
+        comparison_operator: GREATER_THAN
+        threshold:
+          value:
+            double_value: 0
+        empty_result_state: OK
+        notification:
+          notify_on_ok: true
+          subscriptions:
+            - user_email: ${workspace.current_user.userName}
+      schedule:
+        quartz_cron_schedule: "0 0 * * * ?"
+        timezone_id: America/Sao_Paulo
+        pause_status: PAUSED
+
+    alerta_time_sinistros:
+      display_name: "DQX Simples - Problemas de qualidade - Time Sinistros"
+      warehouse_id: ${var.warehouse_id}
+      query_text: |
+        SELECT tabela, regra, criticidade, count(*) AS registros_afetados,
+               concat_ws(', ', sort_array(collect_set(chave_registro))) AS chaves
+        FROM ${var.catalog}.${var.schema}.dq_resultados
+        WHERE time_responsavel = 'Sinistros'
+        GROUP BY tabela, regra, criticidade
+        ORDER BY criticidade, registros_afetados DESC
+      custom_summary: "[DQX Simples] {{ALERT_STATUS}} - problemas nos dados do Time Sinistros"
+      custom_description: |
+        Os dados enviados pelo Time Sinistros têm problemas de qualidade.
+        Nada foi bloqueado: os registros estão na silver, marcados. Corrija na origem e reenvie.
+
+        {{QUERY_RESULT_TABLE}}
+
+        Dashboard: ${workspace.host}/dashboardsv3/${resources.dashboards.dashboard_dq_simples.id}/published
+      evaluation:
+        source:
+          name: registros_afetados
+          aggregation: SUM
+        comparison_operator: GREATER_THAN
+        threshold:
+          value:
+            double_value: 0
+        empty_result_state: OK
+        notification:
+          notify_on_ok: true
+          subscriptions:
+            - user_email: ${workspace.current_user.userName}
+      schedule:
+        quartz_cron_schedule: "0 0 * * * ?"
+        timezone_id: America/Sao_Paulo
+        pause_status: PAUSED

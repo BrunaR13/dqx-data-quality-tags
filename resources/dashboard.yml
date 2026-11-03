@@ -1,0 +1,9 @@
+# ETAPA 4 · Dashboard
+resources:
+  dashboards:
+    dashboard_dq_simples:
+      display_name: "DQX Simples - Qualidade por time"
+      file_path: ../dashboards/dq_simples.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      dataset_catalog: ${var.catalog}
+      dataset_schema: ${var.schema}

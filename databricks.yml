@@ -1,0 +1,22 @@
+bundle:
+  name: dqx_data_quality_tags
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Catálogo Unity Catalog onde o schema da demo será criado
+    default: main
+  schema:
+    description: Schema da demo
+    default: dqx_demo_simples
+  warehouse_id:
+    description: SQL Warehouse usado pelos alertas e pelo dashboard
+    lookup:
+      warehouse: Serverless Starter Warehouse
+
+targets:
+  dev:
+    mode: development
+    default: true
