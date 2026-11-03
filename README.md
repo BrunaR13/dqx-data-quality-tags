@@ -66,7 +66,7 @@ Os alertas vão para o e-mail de quem fez o deploy. Para alterar o dashboard, ed
 Depois, abra o dashboard *"[dev …] DQX Simples - Qualidade por time"* e os dois alertas *"DQX Simples - … - Time Emissão / Sinistros"*
 e clique em **Run now** (a agenda dos alertas fica pausada).
 
-## Roteiro de apresentação (≈ 10 min)
+## Roteiro
 
 1. **Regras**: abrir o `regras_dq.yml`. "A regra de CPF está escrita aqui uma vez. Ela não sabe em que tabela vai rodar."
 2. **Bronze**: no notebook 01, mostrar os dados dos dois times (os erros estão comentados no código).
